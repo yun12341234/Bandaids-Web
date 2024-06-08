@@ -1,0 +1,217 @@
+/* Import Google font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #5fffc4;
+  margin-top: 50px;
+  /* Adjust margin to make space for the fixed navigation bar */
+}
+
+.sortable-list {
+  width: 800px;
+  padding: 30px 25px 20px;
+  background: #fff;
+  border-radius: 7px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.sortable-list .item {
+  list-style: none;
+  display: flex;
+  cursor: move;
+  background: #fff;
+  align-items: center;
+  border-radius: 5px;
+  padding: 10px 13px;
+  margin-bottom: 11px;
+  border: 1px solid #ccc;
+  justify-content: space-between;
+}
+
+.item .details {
+  display: flex;
+  align-items: center;
+}
+
+.item .details img {
+  height: 43px;
+  width: 43px;
+  pointer-events: none;
+  margin-right: 12px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.item .details span {
+  font-size: 1.13rem;
+}
+
+.item i {
+  color: #474747;
+  font-size: 1.13rem;
+}
+
+.item.dragging {
+  opacity: 0.6;
+}
+
+.item.dragging :where(.details, i) {
+  opacity: 0;
+}
+
+.details {
+  position: relative;
+  overflow: hidden;
+  width: 750px;
+  padding-bottom: 20px;
+}
+
+.details.expanded {
+  padding-bottom: 70px;
+}
+
+.details .expand {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  cursor: pointer;
+  color: #43fc7b;
+  z-index: 1;
+}
+
+.details .expand:hover {
+  color: #43fc7b;
+}
+
+.expanded-content {
+  display: none;
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
+  width: calc(100% - 20px);
+}
+
+.details .expanded-content {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f9f9f9;
+  padding: 10px;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+.details.expanded .expanded-content {
+  display: block;
+}
+
+.details img {
+  max-width: 100%;
+  height: auto;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.add-button {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.expand-arrow {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.remove-button {
+  margin-left: 10px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100px; /* Adjust the width as needed */
+}
