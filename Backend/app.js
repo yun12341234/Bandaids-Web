@@ -8,6 +8,8 @@ const path = require('path');
 const axios = require('axios');
 const querystring = require('querystring');
 const dotenv = require('dotenv');
+const { exec } = require('child_process');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -177,3 +179,24 @@ function generateRandomString(length) {
   }
   return randomString;
 }
+
+app.get('/fetch-tracks', (req, res) => {
+  exec('python Userpref.py', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).send('Error executing script');
+    }
+
+    try {
+      const trackData = JSON.parse(stdout);
+      res.json(trackData);
+    } catch (parseError) {
+      console.error(`parse error: ${parseError}`);
+      res.status(500).send('Error parsing script output');
+    }
+  });
+});
+
+//python 3 not found
+//pip found
+//

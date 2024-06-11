@@ -12,7 +12,38 @@
   <nav>
     <div>Bandaids</div>
     <div><a href="#">About</a></div>
+    <a href="localhost:3000/login" onclick="redirectToLogin()">Login</a>
   </nav>
+  <div class="uri-box">
+    <input type="text" id="spotifyUri" placeholder="Paste Spotify URI here">
+    <button onclick="saveUri()">Save URI</button>
+  </div>
+  <body>
+    <div class="container">
+      <h1>Track Recommendations from spotify</h1>
+      <div id="tracks"></div>
+    </div>
+    <script src="scripts.js"></script>
+  </body>
+
+  <ul class="sortable-list">
+  </ul>
+
+  <div class="add-button" onclick="openModal()">+</div>
+
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <p>Enter Spotify song:</p>
+      <input type="text" id="spotifyLink" placeholder="Enter Spotify song">
+      <input type="file" id="fileUpload" accept=".mp3" onchange="handleFileUpload(this.files)">
+      <button onclick="addToList()">Confirm</button>
+    </div>
+  </div>
+
+  <script src="Search.js"></script>
+</body>
+</html>
 
   <ul class="sortable-list">
   </ul>
