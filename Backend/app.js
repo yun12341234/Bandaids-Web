@@ -10,7 +10,6 @@ const querystring = require('querystring');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -43,6 +42,18 @@ const spotifySongSchema = new mongoose.Schema({
 });
 
 const SpotifySong = mongoose.model('SpotifySong', spotifySongSchema);
+
+// Define a schema for Recommended songs
+const recommendedSongSchema = new mongoose.Schema({
+  spotifyLink: String,
+  trackId: String,
+  start: Number,
+  end: Number,
+  speed: Number,
+  key: Number
+});
+
+const RecommendedSong = mongoose.model('RecommendedSong', recommendedSongSchema);
 
 var client_id = '7f950c51a47848398e6ce5ee15b3ca79'
 var client_secret = '2ba89ef7821140d19c2dd8c0ebfc5851'
@@ -122,7 +133,7 @@ app.get('/getToken', (req, res) => {
   });
 });
 
-// Route to fetch saved data from the database
+// Route to fetch saved data from the database (SpotifySong)
 app.get('/getData', async (req, res) => {
   try {
     const songs = await SpotifySong.find();
@@ -133,7 +144,18 @@ app.get('/getData', async (req, res) => {
   }
 });
 
-// Route to save data to the database
+// Route to fetch saved data from the database (RecommendedSong)
+app.get('/getDataRec', async (req, res) => {
+  try {
+    const songs = await RecommendedSong.find();
+    res.json(songs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to save data to the database (SpotifySong)
 app.post('/saveData', async (req, res) => {
   try {
     const dataToSave = req.body; // Assuming dataToSave is an array of objects
@@ -152,11 +174,42 @@ app.post('/saveData', async (req, res) => {
   }
 });
 
-// Route to delete all data from the database
+// Route to save data to the database (RecommendedSong)
+app.post('/saveDataRec', async (req, res) => {
+  try {
+    const dataToSave = req.body; // Assuming dataToSave is an array of objects
+    if (!Array.isArray(dataToSave)) {
+      throw new Error('Data to save must be an array');
+    }
+    // Validate data before saving (you can implement your own validation logic here)
+    // For example, ensure that each object in the array has all required fields
+
+    // Perform the saving operation here, e.g., saving to MongoDB
+    await RecommendedSong.insertMany(dataToSave);
+    res.status(200).send('Data saved successfully');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to delete all data from the database (SpotiftSong)
 app.delete('/deleteOldData', async (req, res) => {
   try {
     // Delete all documents in the collection
     await SpotifySong.deleteMany({});
+    res.status(200).send('Old data deleted successfully');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to delete all data from the database (RecommendedSong)
+app.delete('/deleteOldDataRec', async (req, res) => {
+  try {
+    // Delete all documents in the collection
+    await RecommendedSong.deleteMany({});
     res.status(200).send('Old data deleted successfully');
   } catch (error) {
     console.error(error);
@@ -196,7 +249,3 @@ app.get('/fetch-tracks', (req, res) => {
     }
   });
 });
-
-//python 3 not found
-//pip found
-//
