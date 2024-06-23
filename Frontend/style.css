@@ -18,6 +18,30 @@ body {
   /* Adjust margin to make space for the fixed navigation bar */
 }
 
+.content {
+  background-color: white;
+  padding: 80px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px; /* Adjust margin as needed */
+  text-align: center;
+}
+
+.tracklist {
+  text-align: left; /* Left-align the tracklist div */
+  margin-top: 20px; /* Add some margin to separate it from above content */
+}
+
+.recommendations {
+  text-align: left;
+  margin-top: 20px;
+}
+
+nav div{
+  margin: 0 10px
+}
+
 .sortable-list {
   width: 800px;
   padding: 30px 25px 20px;
@@ -27,6 +51,27 @@ body {
 }
 
 .sortable-list .item {
+  list-style: none;
+  display: flex;
+  cursor: move;
+  background: #fff;
+  align-items: center;
+  border-radius: 5px;
+  padding: 10px 13px;
+  margin-bottom: 11px;
+  border: 1px solid #ccc;
+  justify-content: space-between;
+}
+
+.sortable-list1 {
+  width: 600px;
+  padding: 30px 25px 20px;
+  background: #fff;
+  border-radius: 7px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.sortable-list1 .item {
   list-style: none;
   display: flex;
   cursor: move;
