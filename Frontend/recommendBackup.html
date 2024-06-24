@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BandAids</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <nav>
+    <div><a href="index.html">BandAids</a></div>
+    <div><a href="#">About</a></div>
+    <div><a href="recommend.html">Recommend Songs</a></div>
+  </nav>
+
+  <div class="content">
+    <h1>BandAids</h1>
+    <p>Choose a song from your created tracklist to find other similar songs</p>
+
+    <div class="tracklist">
+        <h3>Your created tracklist:</h3>
+        <ul id="tracklist">
+        </ul>
+    </div>
+
+    <div class="recommendations">
+        <h3>Recommended Songs: 
+          <button class="next-button" onclick="newRecommendation()">Next</button>
+          <button class="listen-button" onclick="getTokenAndPopulateList()">Listen!</button>
+        </h3>
+        <ul id="recommendations">
+        </ul>
+    </div>
+
+    <div class="sortable-list1">
+      <!-- This is where the populated list will be displayed -->
+    </div>
+
+  </div>
+  <script>
+    let token
+    let currentTrackId = null;
+    let currentStartIndex = 0;
+    const batchSize = 10; // for new 10 recommended songs
+
+    async function fetchToken() {
+      try {
+        const response = await fetch('/getToken');
+        if (!response.ok) {
+          throw new Error('Failed to fetch token');
+        }
+        token = await response.text();
+        return token
+      } catch (error) {
+        console.error('Error fetching token:', error);
+        throw error;
+      }
+    }
+
+    async function getTokenAndPopulateList() {
+      try {
+        await fetchToken(); // Fetch the token initially
+
+        if (!token) {
+          alert('Failed to retrieve token.');
+          return;
+        }
+
+        // Now that the token is retrieved successfully, proceed with populating the list
+        alert("Your token is: " + token);
+        await populateListFromDatabase(); // Populate list after obtaining the token
+      } catch (error) {
+        console.error('Error fetching token:', error);
+        alert('An error occurred while fetching token.');
+      }
+    }
+
+    async function fetchTrackDetails(trackId, token) {
+      try {
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch track details');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching track details:', error);
+        throw error;
+      }
+    }
+
+    async function handleSongClick(trackId) {
+      console.log(`Track ID clicked: ${trackId}`);
+      currentTrackId = trackId;
+      currentStartIndex = 0;  // Reset start index when a new track is clicked
+      fetchRecommendations();
+    }
+
+    async function fetchRecommendations() {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/handleClick', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ trackId: currentTrackId, start: currentStartIndex, batch_size: batchSize })
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to run server script');
+        }
+  
+        const result = await response.json();
+        console.log('Server response:', result);
+        displayRecommendations(result.recommendations);
+  
+        // Save recommendations to the database
+        saveRecommendationsToDatabase(result.recommendations);
+  
+      } catch (error) {
+        console.error('Error running server script:', error);
+      }
+    }
+
+    function displayRecommendations(recommendations) {
+      const recommendationsElement = document.getElementById('recommendations');
+      recommendationsElement.innerHTML = ''; // Clear existing recommendations
+
+      for (const recommendation of recommendations) {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+        <div>
+          <span><strong>${recommendation.name}</strong> (ID: ${recommendation.id})</span>
+        </div>
+        `;
+        recommendationsElement.appendChild(listItem);
+      }
+    }
+
+
+    async function fetchTracklist() {
+      try {
+        const token = await fetchToken();
+        const response = await fetch('/getData');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        const tracklistElement = document.getElementById('tracklist');
+        tracklistElement.innerHTML = ''; // Clear existing list items
+
+        for (const item of data) {
+          const trackDetails = await fetchTrackDetails(item.trackId, token);
+          const listItem = document.createElement('li');
+          listItem.textContent = `${trackDetails.name} - ${trackDetails.artists[0].name}`;
+          listItem.setAttribute('data-track-id', item.trackId);
+          listItem.style.cursor = 'pointer'; // Make the list item look clickable
+          console.log(`Attaching event listener to track ID: ${item.trackId}`); // Debug log
+          // event listener
+          listItem.addEventListener('click', () => {
+            console.log(`Clicked on: ${item.trackId}`);
+            handleSongClick(item.trackId);
+          });
+          tracklistElement.appendChild(listItem);
+        }
+      } catch (error) {
+        console.error('Error fetching tracklist:', error);
+        alert('An error occurred while fetching the tracklist. Please try again later.');
+      }
+    }
+
+    function newRecommendation() {
+      currentStartIndex += batchSize;
+      fetchRecommendations();
+    }
+
+    async function populateListFromDatabase() {
+      try {
+        const response = await fetch('/getData');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        const sortableList = document.querySelector(".sortable-list1");
+        sortableList.innerHTML = ""; // Clear existing list items
+        for (const itemData of data) {
+          console.log("Item data:", itemData); // Log item data to check if trackId is present
+          // Fetch track details using trackId
+          const trackDetails = await fetchTrackDetails(itemData.trackId);
+
+          console.log("Track details:", trackDetails); // Log track details to ensure they are fetched correctly
+          const newItem = document.createElement('li');
+          newItem.className = "item";
+          newItem.setAttribute('data-track-id', itemData.trackId);
+          // Include trackId in the list item's HTML markup
+          newItem.innerHTML = `
+          <div class="details" data-track-id="${itemData.trackId}">
+            <img src="${trackDetails.album.images[0].url}" alt="${trackDetails.name}">
+          <div>
+            <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
+            <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
+          </div>
+          <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
+          <button class="stop-button" onclick="stopSong()">⬛</button>
+          <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
+          </div>
+          `;
+          sortableList.appendChild(newItem);
+
+        }
+      } catch (error) {
+        console.error('Error populating list from database:', error);
+        alert('An error occurred while populating list from the database. Please try again later.');
+      }
+    }
+
+    function getAudioDuration(file) {
+      return new Promise((resolve, reject) => {
+        const audio = document.createElement('audio');
+        audio.src = URL.createObjectURL(file);
+        audio.onloadedmetadata = () => {
+          resolve(audio.duration);
+        };
+        audio.onerror = (error) => {
+          reject(error);
+        };
+      });
+    }
+
+    function removeFromList(item) {
+      // Pause the audio if it's currently playing
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      item.parentNode.removeChild(item);
+    }
+
+    function stopSong() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+    }
+
+    let currentAudio = null; // Declare a variable to hold the current audio object
+
+    // Function to play the song using the Spotify Web Playback SDK
+    async function playSong(trackUri, speed) {
+      if (!trackUri) {
+        alert('No track URI available.');
+        return;
+      }
+
+      console.log('Playing song with URI:', trackUri); // Log the track URI to verify it
+
+      try {
+        // Fetch track details from Spotify API using the track URI
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackUri.split('spotify:track:')[1]}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch track details');
+        }
+
+        const trackData = await response.json();
+        const previewUrl = trackData.preview_url;
+        if (!previewUrl) {
+          throw new Error('No preview available for this track');
+        }
+
+        // Stop the current audio if it's playing
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+
+        // Ensure that the speed value is a valid number and within acceptable range
+        if (!isNaN(speed) && isFinite(speed) && speed > 0) {
+          // Create a new audio element to play the preview
+          currentAudio = new Audio(previewUrl);
+          currentAudio.playbackRate = speed / 100; // Set the playback rate based on the provided speed
+          currentAudio.play();
+
+          console.log('Playing preview for track:', trackData.name);
+        } else {
+          console.log(speed)
+          // If the speed value is not valid, play the song with the default speed (1)
+          currentAudio = new Audio(previewUrl);
+          currentAudio.play();
+          console.log('Playing preview for track:', trackData.name, 'with default speed');
+        }
+      } catch (error) {
+        console.error('Error playing song:', error);
+        alert('An error occurred while playing the song. Please try again later.');
+      }
+    }
+
+    // Function to format duration from milliseconds to a human-readable format (minutes:seconds)
+    function formatDuration(milliseconds) {
+      const minutes = Math.floor(milliseconds / 60000);
+      const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
+      return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+    }
+
+    // Function to format duration in minutes and seconds
+    function formatTime(duration_ms) {
+      const totalSeconds = duration_ms / 1000;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = Math.round(totalSeconds % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // SAVE RECOMMENDED SONGS TO DATABASE
+function saveRecommendationsToDatabase(recommendations) {
+  // First, delete all existing data
+  fetch('/deleteOldData', {
+    method: 'DELETE'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to delete old data');
+    }
+    // Once old data is deleted, proceed to save new data
+    const dataToSave = recommendations.map(recommendation => ({
+      spotifyLink: recommendation.imageUrl,  // Assuming recommendation object has imageUrl field
+      trackId: recommendation.id,
+      start: 0,  // Default value for start time
+      end: 0,    // Default value for end time
+      speed: 100, // Default value for speed (100 means normal speed)
+      key: 0     // Default value for key
+    }));
+
+    // Send new data to the server to save in the database
+    return fetch('/saveData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataToSave)
+    });
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to save recommendations');
+    }
+    alert('Recommendations saved successfully!');
+  })
+  .catch(error => {
+    console.error('Error saving recommendations:', error);
+    alert('An error occurred while saving recommendations. Please try again later.');
+  });
+}
+    
+
+    // Function to parse formatted time string to milliseconds
+    function parseTimeStringToMs(timeString) {
+      const [minutes, seconds] = timeString.split(':').map(Number);
+      return (minutes * 60 + seconds) * 1000;
+    }
+
+    fetchTracklist();
+  </script>
+
+</body>
+
+</html>

@@ -4,46 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bandaids</title>
+  <title>BandAids</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
   <nav>
-    <div>Bandaids</div>
+    <div><a href="index.html">BandAids</a></div>
     <div><a href="#">About</a></div>
-    <a href="localhost:3000/login" onclick="redirectToLogin()">Login</a>
+    <div><a href="recommend.html">Recommend Songs</a></div>
   </nav>
-  <div class="uri-box">
-    <input type="text" id="spotifyUri" placeholder="Paste Spotify URI here">
-    <button onclick="saveUri()">Save URI</button>
-  </div>
-  <body>
-    <div class="container">
-      <h1>Track Recommendations from spotify</h1>
-      <div id="tracks"></div>
-    </div>
-    <script src="scripts.js"></script>
-  </body>
-
-  <ul class="sortable-list">
-  </ul>
-
-  <div class="add-button" onclick="openModal()">+</div>
-
-  <div id="myModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <p>Enter Spotify song:</p>
-      <input type="text" id="spotifyLink" placeholder="Enter Spotify song">
-      <input type="file" id="fileUpload" accept=".mp3" onchange="handleFileUpload(this.files)">
-      <button onclick="addToList()">Confirm</button>
-    </div>
-  </div>
-
-  <script src="Search.js"></script>
-</body>
-</html>
 
   <ul class="sortable-list">
   </ul>
@@ -74,6 +44,8 @@
     function handleFileUpload(files) {
       const file = files[0]; // Assuming only one file is uploaded
       if (file) {
+        // check if mime type is mp3
+        if(file.type === 'audio/mpeg') {
         // You can access the file properties such as name, size, type here
         console.log("File name:", file.name);
         console.log("File size:", file.size);
@@ -81,6 +53,10 @@
 
         // You can perform further processing here, such as adding the file to the list
         addFileToList(file);
+        }else {
+          console.error('File is not an mp3 file.')
+          alert('Please upload an mp3 file')
+        }
       } else {
         console.error('No file selected.');
       }

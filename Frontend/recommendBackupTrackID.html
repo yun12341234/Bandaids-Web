@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BandAids</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <nav>
+    <div><a href="index.html">BandAids</a></div>
+    <div><a href="#">About</a></div>
+    <div><a href="recommend.html">Recommend Songs</a></div>
+  </nav>
+
+  <div class="content">
+    <h1>BandAids</h1>
+    <p>Choose a song from your created tracklist to find other similar songs</p>
+
+    <div class="tracklist">
+        <h3>Your created tracklist:</h3>
+        <ul id="tracklist">
+        </ul>
+    </div>
+
+    <div class="recommendations">
+        <h3>Recommended Songs: <button class="next-button" onclick="newRecommendation()">Next</button></h3>
+        <ul id="recommendations">
+        </ul>
+    </div>
+
+  </div>
+  <script>
+    let token
+    let currentTrackId = null;
+    let currentStartIndex = 0;
+    const batchSize = 10; // for new 10 recommended songs
+
+    async function fetchToken() {
+      try {
+        const response = await fetch('/getToken');
+        if (!response.ok) {
+          throw new Error('Failed to fetch token');
+        }
+        token = await response.text();
+        return token
+      } catch (error) {
+        console.error('Error fetching token:', error);
+        throw error;
+      }
+    }
+
+    async function fetchTrackDetails(trackId, token) {
+      try {
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch track details');
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching track details:', error);
+        throw error;
+      }
+    }
+
+    async function handleSongClick(trackId) {
+      console.log(`Track ID clicked: ${trackId}`);
+      currentTrackId = trackId;
+      currentStartIndex = 0;  // Reset start index when a new track is clicked
+      fetchRecommendations();
+    }
+
+    async function fetchRecommendations() {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/handleClick', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ trackId: currentTrackId, start: currentStartIndex, batch_size: batchSize })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to run server script');
+        }
+
+        const result = await response.json();
+        console.log('Server response:', result);
+        displayRecommendations(result.recommendations);
+      } catch (error) {
+        console.error('Error running server script:', error);
+      }
+    }
+
+    function displayRecommendations(recommendations) {
+      const recommendationsElement = document.getElementById('recommendations');
+      recommendationsElement.innerHTML = ''; // Clear existing recommendations
+
+      for (const recommendation of recommendations) {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+        <div>
+          <span><strong>${recommendation.name}</strong> (ID: ${recommendation.id})</span>
+        </div>
+        `;
+        recommendationsElement.appendChild(listItem);
+      }
+    }
+
+
+    async function fetchTracklist() {
+      try {
+        const token = await fetchToken();
+        const response = await fetch('/getData');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        const tracklistElement = document.getElementById('tracklist');
+        tracklistElement.innerHTML = ''; // Clear existing list items
+
+        for (const item of data) {
+          const trackDetails = await fetchTrackDetails(item.trackId, token);
+          const listItem = document.createElement('li');
+          listItem.textContent = `${trackDetails.name} - ${trackDetails.artists[0].name}`;
+          listItem.setAttribute('data-track-id', item.trackId);
+          listItem.style.cursor = 'pointer'; // Make the list item look clickable
+          console.log(`Attaching event listener to track ID: ${item.trackId}`); // Debug log
+          // event listener
+          listItem.addEventListener('click', () => {
+            console.log(`Clicked on: ${item.trackId}`);
+            handleSongClick(item.trackId);
+          });
+          tracklistElement.appendChild(listItem);
+        }
+      } catch (error) {
+        console.error('Error fetching tracklist:', error);
+        alert('An error occurred while fetching the tracklist. Please try again later.');
+      }
+    }
+
+    function newRecommendation() {
+      currentStartIndex += batchSize;
+      fetchRecommendations();
+    }
+
+
+    fetchTracklist();
+  </script>
+
+</body>
+
+</html>
