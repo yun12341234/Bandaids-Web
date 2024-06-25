@@ -1,0 +1,137 @@
+/* Resetting default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Body styling */
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #5fffc4;
+  }
+  
+  /* Navigation bar styling */
+  nav {
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+  }
+  
+  nav a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+  }
+  
+  nav a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Container styling */
+  .container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .container h1 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .container form {
+    margin-bottom: 20px;
+  }
+  
+  .container label {
+    font-weight: bold;
+  }
+  
+  .container input[type="text"],
+  .container input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .container input[type="submit"] {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .container input[type="submit"]:hover {
+    background-color: #555;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .container {
+      padding: 10px;
+    }
+  }
+
+.add-button {
+  background-color: #4CAF50; 
+  border: none; 
+  color: white; 
+  padding: 10px 20px; 
+  text-align: center; 
+  text-decoration: none; 
+  display: inline-block; 
+  font-size: 16px; 
+  margin: 4px 2px; 
+  cursor: pointer; 
+  border-radius: 5px; 
+  transition: background-color 0.3s ease; 
+}
+
+
+.add-button:hover {
+  background-color: #45a049; 
+}
+
+
+.finalize-button {
+  background-color: #008CBA; 
+  border: none; 
+  color: white; 
+  padding: 15px 30px; 
+  text-align: center; 
+  text-decoration: none; 
+  display: inline-block; 
+  font-size: 18px; 
+  margin: 4px 2px; 
+  cursor: pointer; 
+  border-radius: 5px; 
+  transition: background-color 0.3s ease; 
+}
+
+
+.finalize-button:hover {
+  background-color: #007bb5; 
+}
+
+
+.finalize-button:disabled {
+  background-color: #cccccc; 
+  color: #666666; 
+  cursor: not-allowed; 
+}
+
+.count-span {
+     font-size: 24px;
+    font-weight: bold;
+}
