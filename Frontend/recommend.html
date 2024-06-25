@@ -215,6 +215,7 @@
           <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
           <button class="stop-button" onclick="stopSong()">⬛</button>
           <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
+          <button class="addTrack-button" onclick="saveToTracklistDB('${trackDetails.uri}', '${trackDetails.name}', '${trackDetails.artists[0].name}', '${trackDetails.album.images[0].url}', '${itemData.trackId}')">➕</button>
           </div>
           `;
           sortableList.appendChild(newItem);
@@ -368,6 +369,40 @@ function saveRecommendationsToDatabase(recommendations) {
     alert('An error occurred while saving recommendations. Please try again later.');
   });
 }
+
+async function saveToTracklistDB(uri, name, artist, imageUrl, trackId) {
+  const dataToSave = [
+    {
+      spotifyLink: imageUrl,
+      trackId: trackId,
+      start: 0,  // Default value for start time
+      end: 0,    // Default value for end time
+      speed: 100, // Default value for speed (100 means normal speed)
+      key: 0     // Default value for key
+    }
+  ];
+
+  try {
+    console.log('Saving track to database:', dataToSave); // Log data being saved
+    const response = await fetch('/saveData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataToSave)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save track');
+    }
+
+    alert('Song added to tracklist!');
+  } catch (error) {
+    console.error('Error saving track:', error);
+    alert('An error occurred while saving the track. Please try again later.');
+  }
+}
+
     
 
     // Function to parse formatted time string to milliseconds

@@ -202,6 +202,8 @@ nav a {
   cursor: pointer;
 }
 
+
+
 .modal {
   display: none;
   position: fixed;
@@ -255,6 +257,12 @@ nav a {
 .remove-button {
   margin-left: 10px;
 }
+
+.addTrack-button {
+  margin-left: 10px;
+}
+
+
 
 input[type="text"],
 input[type="number"] {
