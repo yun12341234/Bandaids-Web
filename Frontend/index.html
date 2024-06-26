@@ -11,9 +11,9 @@
 <body>
   <nav>
     <div><a href="index.html">BandAids</a></div>
-    <div><a href="#">About</a></div>
     <div><a href="recommend.html">Recommend Songs</a></div>
     <div><a href="userpreference.html">User preferences</a></div>
+    <div><a href="about.html">About</a></div>
   </nav>
 
   <ul class="sortable-list">
@@ -35,6 +35,7 @@
 
 
   <button class="save-button" onclick="saveToDatabase()">Save</button>
+  <button class="global-play-button" onclick="playAllSongs()">Play All</button>
 
 
   <script>
@@ -647,6 +648,39 @@ function parseTimeStringToMs(timeString) {
   const [minutes, seconds] = timeString.split(':').map(Number);
   return (minutes * 60 + seconds) * 1000;
 }
+
+async function playAllSongs() {
+  const items = document.querySelectorAll('.sortable-list .item');
+  let currentIndex = 0;
+
+  async function playNext() {
+    if (currentIndex < items.length) {
+      const item = items[currentIndex];
+      const trackId = item.getAttribute('data-track-id');
+
+      try {
+        // Fetch track details using trackId
+        const trackDetails = await fetchTrackDetails(trackId);
+        const trackUri = trackDetails.uri;
+
+        // Play the song with default speed
+        await playSong(trackUri, 100);
+
+        // Move to the next song after this one ends
+        currentIndex++;
+        await delay(500); // Delay between songs (optional)
+        await playNext(); // Recursively play next song
+      } catch (error) {
+        console.error('Error playing song:', error);
+        alert('An error occurred while playing the songs. Please try again later.');
+      }
+    }
+  }
+
+  // Start playing from the first song
+  await playNext();
+}
+
 
 getTokenAndPopulateList();
 
