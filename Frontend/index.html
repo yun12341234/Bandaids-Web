@@ -20,7 +20,7 @@
   </ul>
 
   <div class="add-button" onclick="openModal()">+</div>
-  <div class="play-button" onclick="playAllSongs()">▶</div>
+  <div class="playbutton" onclick="playAllSongs()">▶</div>
 
   <div id="myModal" class="modal">
     <div class="modal-content">
@@ -93,7 +93,7 @@
         }
 
         // Now that the token is retrieved successfully, proceed with populating the list
-        alert("Your token is: " + token);
+        // alert("Your token is: " + token);
         await populateListFromDatabase(); // Populate list after obtaining the token
       } catch (error) {
         console.error('Error fetching token:', error);
@@ -173,7 +173,7 @@
               <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
               <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
             </div>
-            <button class="playbutton" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
+            <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
             <button class="stop-button" onclick="stopSong()">⬛</button>
             <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
             <div class="expand">&#9660;</div>

@@ -7,6 +7,18 @@
   box-sizing: border-box;
   font-family: 'Poppins', sans-serif;
 }
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  z-index: 1000; /* Increase the z-index value */
+}
 
 body {
   display: flex;
@@ -202,7 +214,7 @@ nav a {
   cursor: pointer;
 }
 
-.play-button {
+.playbutton {
   position: fixed;
   bottom: 20px;
   right: 20px; /* Changed from left to right */
