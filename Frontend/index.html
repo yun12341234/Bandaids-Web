@@ -173,7 +173,7 @@
               <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
               <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
             </div>
-            <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
+            <button class="playbutton" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
             <button class="stop-button" onclick="stopSong()">⬛</button>
             <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
             <div class="expand">&#9660;</div>
