@@ -202,6 +202,23 @@ nav a {
   cursor: pointer;
 }
 
+.play-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px; /* Changed from left to right */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
 
 
 .modal {
@@ -261,6 +278,20 @@ nav a {
 .addTrack-button {
   margin-left: 10px;
 }
+
+.save-button {
+  background-color: #fff; /* White background */
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px; /* Slightly rounded borders */
+  color: #000; /* Black text color */
+  padding: 10px 20px; /* Padding for size and spacing */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 16px; /* Font size */
+  display: inline-block; /* Display as inline-block for better styling control */
+  text-align: center; /* Center the text */
+}
+
+
 
 
 
