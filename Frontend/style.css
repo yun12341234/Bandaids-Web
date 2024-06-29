@@ -20,6 +20,16 @@ nav {
   z-index: 1000; /* Increase the z-index value */
 }
 
+nav a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
 body {
   display: flex;
   align-items: center;
@@ -38,11 +48,21 @@ body {
   max-width: 800px;
   margin-top: 20px; /* Adjust margin as needed */
   text-align: center;
+  border-radius: 8px;
 }
 
 .tracklist {
   text-align: left; /* Left-align the tracklist div */
   margin-top: 20px; /* Add some margin to separate it from above content */
+}
+
+#tracklist li {
+  color: black; /* Default text color */
+  cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+#tracklist li:hover {
+  color: red; /* Change to your desired text color on hover */
 }
 
 .recommendations {

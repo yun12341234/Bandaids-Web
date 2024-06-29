@@ -18,7 +18,7 @@
 
   <div class="content">
     <h1>BandAids</h1>
-    <p>Choose a song from your created tracklist to find other similar songs</p>
+    <p>Pick a song from your created tracklist to find other similar songs!</p>
 
     <div class="tracklist">
         <h3>Your created tracklist:</h3>
@@ -29,7 +29,6 @@
     <div class="recommendations">
         <h3>Recommended Songs: 
           <button class="next-button" onclick="newRecommendation()">Next</button>
-          <button class="listen-button" onclick="getTokenAndPopulateList()">Listen!</button>
         </h3>
         <ul id="recommendations">
         </ul>
@@ -70,7 +69,7 @@
         }
 
         // Now that the token is retrieved successfully, proceed with populating the list
-        alert("Your token is: " + token);
+        // alert("Your token is: " + token);
         await populateListFromDatabase(); // Populate list after obtaining the token
       } catch (error) {
         console.error('Error fetching token:', error);
@@ -124,28 +123,12 @@
   
         const result = await response.json();
         console.log('Server response:', result);
-        displayRecommendations(result.recommendations);
   
         // Save recommendations to the database
         saveRecommendationsToDatabase(result.recommendations);
   
       } catch (error) {
         console.error('Error running server script:', error);
-      }
-    }
-
-    function displayRecommendations(recommendations) {
-      const recommendationsElement = document.getElementById('recommendations');
-      recommendationsElement.innerHTML = ''; // Clear existing recommendations
-
-      for (const recommendation of recommendations) {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-        <div>
-          <span><strong>${recommendation.name}</strong></span>
-        </div>
-        `;
-        recommendationsElement.appendChild(listItem);
       }
     }
 
@@ -362,7 +345,8 @@ function saveRecommendationsToDatabase(recommendations) {
     if (!response.ok) {
       throw new Error('Failed to save recommendations');
     }
-    alert('Recommendations saved successfully!');
+    // alert('Recommendations saved successfully!');
+    getTokenAndPopulateList(); // Show recommended songs right away after saved to database
   })
   .catch(error => {
     console.error('Error saving recommendations:', error);
