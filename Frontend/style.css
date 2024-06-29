@@ -311,6 +311,15 @@ nav a {
   margin-left: 10px;
 }
 
+.songButton {
+  display: flex;
+  margin-left: auto;
+}
+
+.songButton button {
+  margin-left: 5px;
+}
+
 .save-button {
   background-color: #fff; /* White background */
   border: 1px solid #ccc; /* Light gray border */
@@ -322,9 +331,6 @@ nav a {
   display: inline-block; /* Display as inline-block for better styling control */
   text-align: center; /* Center the text */
 }
-
-
-
 
 
 input[type="text"],

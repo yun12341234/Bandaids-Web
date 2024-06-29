@@ -195,10 +195,12 @@
             <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
             <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
           </div>
+          <div class="songButton">
           <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
           <button class="stop-button" onclick="stopSong()">⬛</button>
           <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
           <button class="addTrack-button" onclick="saveToTracklistDB('${trackDetails.uri}', '${trackDetails.name}', '${trackDetails.artists[0].name}', '${trackDetails.album.images[0].url}', '${itemData.trackId}')">➕</button>
+          </div>
           </div>
           `;
           sortableList.appendChild(newItem);
