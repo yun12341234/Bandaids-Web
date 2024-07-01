@@ -1,7 +1,13 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('userPreferencesForm');
+    const loadingMessage = document.getElementById('loadingMessage');
+
     form.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent default form submission
+
+        // Show loading indicator
+        document.body.classList.add('loading');
+        loadingMessage.style.display = 'block';
 
         try {
             await saveUserPreferences(); // Wait for saveUserPreferences to complete
@@ -12,12 +18,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const data = await response.json();
             console.log('Data fetched:', data);
-            displayTracks(data);
+
+            await saveTracksToDatabase(data); // Save tracks to the database
+            await populateListFromDatabase();
+            await deleteOldDataUserpref(); // Clear the database before populating the list
+
         } catch (error) {
             console.error('Error fetching tracks:', error);
+        } finally {
+            // Hide loading indicator
+            document.body.classList.remove('loading');
+            loadingMessage.style.display = 'none';
         }
     });
 });
+
+let token;
+let currentTrackId = null;
+let currentStartIndex = 0;
+let currentAudio;
 
 async function saveUserPreferences() {
     try {
@@ -43,115 +62,34 @@ async function saveUserPreferences() {
     }
 }
 
-let selectedSongs = [];
-
-function displayTracks(data) {
-    const tracksContainer = document.getElementById('tracks');
-    tracksContainer.innerHTML = '';
-
-    const countContainer = document.createElement('div');
-    countContainer.classList.add('count-container');
-    const countLabel = document.createElement('p');
-    countLabel.textContent = 'Songs Selected: ';
-    const countSpan = document.createElement('span');
-    countSpan.textContent = '0';
-    countSpan.classList.add('count-span'); // Add class for custom styling
-    countContainer.appendChild(countLabel);
-    countContainer.appendChild(countSpan);
-
-    const finalizeButton = document.createElement('button');
-    finalizeButton.textContent = 'Finalize';
-    finalizeButton.classList.add('finalize-button');
-    finalizeButton.disabled = true;
-    finalizeButton.addEventListener('click', () => {
-        finalizeSelection();
-    });
-
-    countContainer.appendChild(finalizeButton);
-    tracksContainer.appendChild(countContainer);
+async function saveTracksToDatabase(data) {
+    let tracksToSave = [];
 
     Object.keys(data).forEach(clusterLabel => {
         const clusterData = data[clusterLabel];
 
-        const clusterDiv = document.createElement('div');
-        clusterDiv.classList.add('cluster');
-
-        const clusterHeading = document.createElement('h2');
-        clusterHeading.textContent = clusterLabel;
-        clusterDiv.appendChild(clusterHeading);
-
-        if (clusterData.error) {
-            const errorMsg = document.createElement('p');
-            errorMsg.textContent = `Error: ${clusterData.error}`;
-            clusterDiv.appendChild(errorMsg);
-        } else {
+        if (!clusterData.error) {
             clusterData.forEach(track => {
-                const trackDiv = document.createElement('div');
-                trackDiv.classList.add('track');
-
-                const trackName = document.createElement('p');
-                trackName.innerHTML = `<strong>${track.name}</strong> by ${track.artist}`;
-
-                const trackLink = document.createElement('a');
-                trackLink.href = track.spotify_url;
-                trackLink.textContent = 'Listen on Spotify';
-                trackLink.target = '_blank';
-
-                const addButton = document.createElement('button');
-                addButton.textContent = 'Add';
-                addButton.classList.add('add-button');
-                addButton.addEventListener('click', () => {
-                    addToSelection({
-                        trackId: track.track_id,
-                        spotifyLink: track.spotify_url,
-                        start: 0,
-                        end: 0,
-                        speed: 100,
-                        key: 0
-                    });
-                    countSpan.textContent = selectedSongs.length.toString();
-                    finalizeButton.disabled = selectedSongs.length === 0;
-                    addButton.disabled = true; // Disable the add button after adding the song
+                tracksToSave.push({
+                    trackId: track.track_id,
+                    spotifyLink: track.spotify_url,
+                    start: 0,
+                    end: 0,
+                    speed: 100,
+                    key: 0
                 });
-
-                trackDiv.appendChild(trackName);
-                trackDiv.appendChild(trackLink);
-                trackDiv.appendChild(addButton);
-                clusterDiv.appendChild(trackDiv);
             });
         }
-
-        tracksContainer.appendChild(clusterDiv);
     });
-}
 
-function addToSelection(track) {
-    selectedSongs.push(track);
-}
+    console.log('Tracks to save:', tracksToSave); // Debugging log to verify data structure
 
-function finalizeSelection() {
-    if (!Array.isArray(selectedSongs) || selectedSongs.length === 0) {
-        alert('Please select at least one song to finalize.');
-        return;
-    }
-
-    const dataToSave = selectedSongs.map(track => ({
-        trackId: track.trackId,
-        spotifyLink: track.spotifyLink,
-        start: track.start,
-        end: track.end,
-        speed: track.speed,
-        key: track.key
-    }));
-
-    console.log('Data to save:', dataToSave); // Debugging log to verify data structure
-
-    fetch('/saveDataUserpref', {
+    await fetch('/saveDataUserpref', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ songs: dataToSave }), // Note that songs are sent within an object
+        body: JSON.stringify({ songs: tracksToSave }), // Note that songs are sent within an object
     })
     .then(response => {
         if (!response.ok) {
@@ -161,12 +99,227 @@ function finalizeSelection() {
     })
     .then(data => {
         console.log('Songs added to database successfully:', data);
-        selectedSongs = [];
         alert('Songs saved successfully!');
-        window.location.href = '/'; // Redirect to home page
     })
     .catch(error => {
         console.error('Error adding songs to database:', error);
         alert('An error occurred while adding songs to the database. Please try again later.');
     });
+}
+
+async function deleteOldDataUserpref() {
+    try {
+        const response = await fetch('/deleteOldDataUserpref', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete old data');
+        }
+        const data = await response.text();
+        console.log('Old data deleted successfully:', data);
+    } catch (error) {
+        console.error('Error deleting old data:', error);
+        alert('An error occurred while deleting old data. Please try again later.');
+    }
+}
+
+async function fetchTrackDetails(trackId, token) {
+    const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to fetch track details for trackId: ${trackId}`);
+    }
+    return response.json();
+}
+
+async function fetchToken() {
+    try {
+        const response = await fetch('/getToken');
+        if (!response.ok) {
+            throw new Error('Failed to fetch token');
+        }
+        const token = await response.text();
+        return token;
+    } catch (error) {
+        console.error('Error fetching token:', error);
+        throw error;
+    }
+}
+
+async function populateListFromDatabase() {
+    try {
+        token = await fetchToken(); // Get the Spotify token and assign to global variable
+        const response = await fetch('/getDataUserpref');
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        const sortableList = document.querySelector(".sortable-list1");
+        if (!sortableList) {
+            throw new Error('Element with class sortable-list1 not found');
+        }
+        sortableList.innerHTML = ""; // Clear existing list items
+        for (const itemData of data) {
+            console.log("Item data:", itemData); // Log item data to check if trackId is present
+            try {
+                // Fetch track details using trackId
+                const trackDetails = await fetchTrackDetails(itemData.trackId, token);
+                console.log("Track details:", trackDetails);
+                const newItem = document.createElement('li');
+                newItem.className = "item";
+                newItem.setAttribute('data-track-id', itemData.trackId);
+                // Include trackId in the list item's HTML markup
+                newItem.innerHTML = `
+                <div class="details" data-track-id="${itemData.trackId}">
+                    <div>
+                        <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
+                        <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
+                    </div>
+                    <div class="songButton">
+                        <button class="play-button" onclick="playSong('${trackDetails.uri}', 100)">&#9654;</button> <!-- Added default speed value -->
+                        <button class="stop-button" onclick="stopSong()">⬛</button>
+                        <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
+                        <button class="addTrack-button" onclick="saveToTracklistDB('${trackDetails.uri}', '${itemData.trackId}')">➕</button>
+                    </div>
+                </div>
+                `;
+                sortableList.appendChild(newItem);
+            } catch (error) {
+                console.error(`Error fetching details for track ${itemData.trackId}:`, error);
+            }
+        }
+    } catch (error) {
+        console.error('Error populating list from database:', error);
+        alert('An error occurred while populating the list from the database. Please try again later.');
+    }
+}
+
+
+function formatTime(duration_ms) {
+    const minutes = Math.floor(duration_ms / 60000);
+    const seconds = ((duration_ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
+async function playSong(trackUri, speed) {
+    if (!trackUri) {
+        alert('No track URI available.');
+        return;
+    }
+
+    console.log('Playing song with URI:', trackUri); // Log the track URI to verify it
+
+    try {
+        // Fetch track details from Spotify API using the track URI
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackUri.split('spotify:track:')[1]}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch track details');
+        }
+
+        const trackData = await response.json();
+        const previewUrl = trackData.preview_url;
+        if (!previewUrl) {
+            throw new Error('No preview available for this track');
+        }
+
+        // Stop the current audio if it's playing
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+
+        // Ensure that the speed value is a valid number and within acceptable range
+        if (!isNaN(speed) && isFinite(speed) && speed > 0) {
+            // Create a new audio element to play the preview
+            currentAudio = new Audio(previewUrl);
+            currentAudio.playbackRate = speed / 100; // Set the playback rate based on the provided speed
+            currentAudio.play();
+
+            console.log('Playing preview for track:', trackData.name);
+        } else {
+            console.log(speed);
+            // If the speed value is not valid, play the song with the default speed (1)
+            currentAudio = new Audio(previewUrl);
+            currentAudio.play();
+            console.log('Playing preview for track:', trackData.name, 'with default speed');
+        }
+    } catch (error) {
+        console.error('Error playing song:', error);
+        alert('An error occurred while playing the song. Please try again later.');
+    }
+}
+
+
+function stopSong() {
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+}
+
+function removeFromList(item) {
+    // Pause the audio if it's currently playing
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+    item.parentNode.removeChild(item);
+}
+
+function saveToTracklistDB(uri, name, artist, imageUrl, trackId) {
+    // Implement save to tracklist database functionality
+}
+
+function getAudioDuration(file) {
+    return new Promise((resolve, reject) => {
+        const audio = document.createElement('audio');
+        audio.src = URL.createObjectURL(file);
+        audio.onloadedmetadata = () => {
+            resolve(audio.duration);
+        };
+        audio.onerror = (error) => {
+            reject(error);
+        };
+    });
+}
+
+async function saveToTracklistDB(uri, trackId) {
+    const trackData = {
+        trackId: trackId,
+        spotifyLink: uri,
+        start: 0,
+        end: 0,
+        speed: 100,
+        key: 0
+    };
+
+    try {
+        const response = await fetch('/saveData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify([trackData]) // Save data as an array
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save track data');
+        }
+
+        const result = await response.json();
+        console.log('Track data saved successfully:', result);
+    } catch (error) {
+        console.error('Error saving track data:', error);
+        alert('An error occurred while saving the track data. Please try again later.');
+    }
 }
