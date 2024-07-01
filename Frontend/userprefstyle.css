@@ -12,7 +12,7 @@
     background-color: #5fffc4;
   }
   
-  /* Navigation bar styling */
+
   nav {
     background-color: #333;
     color: #fff;
@@ -134,4 +134,14 @@
 .count-span {
      font-size: 24px;
     font-weight: bold;
+}
+
+.loading {
+  cursor: wait;
+}
+
+#loadingMessage {
+  display: none;
+  font-size: 16px;
+  color: #333;
 }
