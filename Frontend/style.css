@@ -52,6 +52,17 @@ body {
   display: inline-block;
 }
 
+.content1 {
+  background-color: white;
+  padding: 80px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px; 
+  text-align: center;
+  border-radius: 8px;
+}
+
 .content-main {
   background-color: white;
   padding: 80px;
@@ -66,21 +77,42 @@ body {
 
 .tracklist {
   text-align: left; /* Left-align the tracklist div */
-  margin-top: 20px; /* Add some margin to separate it from above content */
+  margin-top: 20px; 
 }
 
 #tracklist li {
   color: black; /* Default text color */
-  cursor: pointer; /* Change cursor to pointer on hover */
+  cursor: pointer; 
 }
 
 #tracklist li:hover {
-  color: red; /* Change to your desired text color on hover */
+  color: rgb(76, 163, 102);
+}
+
+.list-group {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  max-width: 640px;
+  text-align: left;
+}
+
+.list-group li {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.list-group li:last-child {
+  border-bottom: none;
 }
 
 .recommendations {
-  text-align: left;
-  margin-top: 20px;
+  /* text-align: left;
+  margin-top: 20px; */
+  display: none;
 }
 
 .bandaids {
@@ -134,11 +166,9 @@ nav div{
 }
 
 .sortable-list1 {
-  width: 600px;
+  width: 640px;
   padding: 30px 25px 20px;
-  background: #fff;
   border-radius: 7px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 .sortable-list1 .item {
