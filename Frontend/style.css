@@ -35,7 +35,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #5fffc4;
+  background: #8effd5;
   margin-top: 50px;
   /* Adjust margin to make space for the fixed navigation bar */
 }
@@ -49,6 +49,19 @@ body {
   margin-top: 20px; /* Adjust margin as needed */
   text-align: center;
   border-radius: 8px;
+  display: inline-block;
+}
+
+.content-main {
+  background-color: white;
+  padding: 80px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 960px;
+  margin-top: 20px; /* Adjust margin as needed */
+  text-align: center;
+  border-radius: 8px;
+  display: inline-block;
 }
 
 .tracklist {
@@ -70,8 +83,33 @@ body {
   margin-top: 20px;
 }
 
+.bandaids {
+  text-align: center;
+}
+
 nav div{
   margin: 0 10px
+}
+
+.sortable-list-main {
+  width: 800px;
+  padding: 30px 25px 20px;
+  background: #fff;
+  border-radius: 7px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.sortable-list-main .item {
+  list-style: none;
+  display: flex;
+  cursor: move;
+  background: #fff;
+  align-items: left;
+  border-radius: 5px;
+  padding: 10px 13px;
+  margin-bottom: 11px;
+  border: 1px solid #ccc;
+  justify-content: space-between;
 }
 
 .sortable-list {
@@ -155,7 +193,7 @@ nav div{
 }
 
 .details.expanded {
-  padding-bottom: 70px;
+  padding-bottom: 120px;
 }
 
 .details .expand {
@@ -172,29 +210,26 @@ nav div{
 }
 
 .expanded-content {
-  display: none;
   background-color: #f9f9f9;
   padding: 10px;
   margin-top: 5px;
   border-radius: 5px;
-  width: calc(100% - 20px);
+  width: calc(100% - 80px);
+  margin-left: 50px; /* Adjust this value to move it to the right */
 }
+
 
 .details .expanded-content {
-  display: none;
   position: absolute;
   bottom: 0;
+  top: 40;
   left: 0;
-  width: 100%;
+  width: 80%;
   background-color: #f9f9f9;
   padding: 10px;
-  box-sizing: border-box;
-  z-index: 0;
+
 }
 
-.details.expanded .expanded-content {
-  display: block;
-}
 
 .details img {
   max-width: 100%;
@@ -232,6 +267,7 @@ nav a {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* display: inline-block; */
 }
 
 .playbutton {
@@ -261,6 +297,7 @@ nav a {
   top: 0;
   width: 100%;
   height: 100%;
+
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
 }
@@ -272,6 +309,8 @@ nav a {
   border: 1px solid #888;
   width: 80%;
   max-width: 500px;
+  border-radius: 5px;
+  /* border-radius: 98%; */
 }
 
 .close {
@@ -320,7 +359,27 @@ nav a {
   margin-left: 5px;
 }
 
+.container {
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically if needed */
+  height: 100vh; /* Full height of the viewport if needed */
+}
+
 .save-button {
+  background-color: #aaff96; /* White background */
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px; /* Slightly rounded borders */
+  color: #000; /* Black text color */
+  padding: 10px 20px; /* Padding for size and spacing */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 16px; /* Font size */
+  display: inline-block; /* Display as inline-block for better styling control */
+  text-align: center; /* Center the text */
+  font-weight: bold;
+}
+
+.play-add-button {
   background-color: #fff; /* White background */
   border: 1px solid #ccc; /* Light gray border */
   border-radius: 5px; /* Slightly rounded borders */
@@ -333,7 +392,37 @@ nav a {
 }
 
 
+
 input[type="text"],
 input[type="number"] {
-  width: 100px; /* Adjust the width as needed */
+  width: 40px; /* Adjust the width as needed */
 }
+
+.inputLink{
+  width: 415px;
+}
+
+.confirm-button {
+  /* position: fixed; */
+  background-color: #fff; /* White background */
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px; /* Slightly rounded borders */
+  color: #000; /* Black text color */
+  padding: 10px 15px; /* Padding for size and spacing */
+  cursor: pointer; /* Pointer cursor on hover */
+  display: inline-block; /* Display as inline-block for better styling control */
+  text-align: center; /* Center the text */
+}
+
+.confirm-button2 {
+  /* position: fixed; */
+  background-color: #fff; /* White background */
+  border: 1px solid #ccc; /* Light gray border */
+  border-radius: 5px; /* Slightly rounded borders */
+  color: #000; /* Black text color */
+  padding: 10px 20px; /* Padding for size and spacing */
+  cursor: pointer; /* Pointer cursor on hover */
+  display: inline-block; /* Display as inline-block for better styling control */
+  text-align: center; /* Center the text */
+}
+

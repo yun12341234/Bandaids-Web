@@ -16,26 +16,45 @@
     <div><a href="about.html">About</a></div>
   </nav>
 
-  <ul class="sortable-list">
-  </ul>
 
-  <div class="add-button" onclick="openModal()">+</div>
-  <div class="playbutton" onclick="playAllSongs()">▶</div>
+
+
+
+  <div class="content-main">
+    <h1>Bandaids Tracklist editor</h1>
+    <p>Pick a song and edit to your liking!</p>
+
+
+    <div class="bandaids">
+      <h3>Your created tracklist:
+        <div class="play-add-button" onclick="openModal()">Add a new song</div>
+        <div class="play-add-button" onclick="playAllSongs()">Play all</div>
+        <button class="save-button" onclick="saveToDatabase()">Save changes</button>
+
+      </h3>
+      </ul>
+    </div>
+    <ul class="sortable-list">
+      <!-- Your sortable list items will go here -->
+    </ul>
+  </div>
+
+
+
 
   <div id="myModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
-      <p>Enter Spotify song:</p>
-      <input type="text" id="spotifyLink" placeholder="Enter Spotify song">
+      <p><b>Enter Spotify song link or upload mp3:</b></p>
+      <input id="spotifyLink" class="inputLink" placeholder="Enter Spotify song">
 
       <!-- Add file upload button -->
-      <input type="file" id="fileUpload" accept=".mp3" onchange="handleFileUpload(this.files)">
-      <button onclick="addToList()">Confirm</button>
+      <input type="file" id="fileUpload" class="confirm-button2" accept=".mp3" onchange="handleFileUpload(this.files)">
+      <button class="confirm-button" onclick="addToList()">Confirm</button>
     </div>
   </div>
 
 
-  <button class="save-button" onclick="saveToDatabase()">Save</button>
 
 
   <script>
@@ -47,15 +66,15 @@
       const file = files[0]; // Assuming only one file is uploaded
       if (file) {
         // check if mime type is mp3
-        if(file.type === 'audio/mpeg') {
-        // You can access the file properties such as name, size, type here
-        console.log("File name:", file.name);
-        console.log("File size:", file.size);
-        console.log("File type:", file.type);
+        if (file.type === 'audio/mpeg') {
+          // You can access the file properties such as name, size, type here
+          console.log("File name:", file.name);
+          console.log("File size:", file.size);
+          console.log("File type:", file.type);
 
-        // You can perform further processing here, such as adding the file to the list
-        addFileToList(file);
-        }else {
+          // You can perform further processing here, such as adding the file to the list
+          addFileToList(file);
+        } else {
           console.error('File is not an mp3 file.')
           alert('Please upload an mp3 file')
         }
@@ -131,84 +150,83 @@
 
 
     async function populateListFromDatabase() {
-  try {
-    // Fetch data from both endpoints
-    const [dataResponse, userPrefResponse] = await Promise.all([
-      fetch('/getData'),
-      fetch('/getDataUserpref')
-    ]);
+      try {
+        // Fetch data from both endpoints
+        const [dataResponse, userPrefResponse] = await Promise.all([
+          fetch('/getData'),
+          fetch('/getDataUserpref')
+        ]);
 
-    // Check if both responses are ok
-    if (!dataResponse.ok) {
-      throw new Error('Failed to fetch data from /getData');
-    }
-    if (!userPrefResponse.ok) {
-      throw new Error('Failed to fetch data from /getDataUserpref');
-    }
+        // Check if both responses are ok
+        if (!dataResponse.ok) {
+          throw new Error('Failed to fetch data from /getData');
+        }
+        if (!userPrefResponse.ok) {
+          throw new Error('Failed to fetch data from /getDataUserpref');
+        }
 
-    // Parse the JSON data from both responses
-    const data = await dataResponse.json();
-    const userPrefData = await userPrefResponse.json();
+        // Parse the JSON data from both responses
+        const data = await dataResponse.json();
+        const userPrefData = await userPrefResponse.json();
 
-    const sortableList = document.querySelector(".sortable-list");
-    sortableList.innerHTML = ""; // Clear existing list items
+        const sortableList = document.querySelector(".sortable-list");
+        sortableList.innerHTML = ""; // Clear existing list items
 
-    // Function to populate list with data
-    async function populateList(dataArray) {
-      for (const itemData of dataArray) {
-        console.log("Item data:", itemData); // Log item data to check if trackId is present
-        // Fetch track details using trackId
-        const trackDetails = await fetchTrackDetails(itemData.trackId);
+        // Function to populate list with data
+        async function populateList(dataArray) {
+          for (const itemData of dataArray) {
+            console.log("Item data:", itemData); // Log item data to check if trackId is present
+            // Fetch track details using trackId
+            const trackDetails = await fetchTrackDetails(itemData.trackId);
 
-        console.log("Track details:", trackDetails); // Log track details to ensure they are fetched correctly
-        const newItem = document.createElement('li');
-        newItem.className = "item";
-        newItem.draggable = true;
-        newItem.setAttribute('data-track-id', itemData.trackId);
-        // Include trackId in the list item's HTML markup
-        newItem.innerHTML = `
+            console.log("Track details:", trackDetails); // Log track details to ensure they are fetched correctly
+            const newItem = document.createElement('li');
+            newItem.className = "item";
+            newItem.draggable = true;
+            newItem.setAttribute('data-track-id', itemData.trackId);
+            // Include trackId in the list item's HTML markup
+            newItem.innerHTML = `
           <div class="details" data-track-id="${itemData.trackId}">
             <img src="${trackDetails.album.images[0].url}" alt="${trackDetails.name}">
             <div>
               <div>${trackDetails.name} - ${trackDetails.artists[0].name}</div>
               <div class="song-length">🕒 ${formatTime(trackDetails.duration_ms)}</div>
             </div>
-            <div class="songButton">
-            <button class="play-button" onclick="playSong('${trackDetails.uri}')">&#9654;</button>
-            <button class="stop-button" onclick="stopSong()">⬛</button>
-            <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
-            </div>
-            <div class="expand">&#9660;</div>
-            <div class="expanded-content">
-              <label for="start">Start:</label>
-              <input type="text" id="start" value="${formatTime(itemData.start)}">
-              <label for="end">End:</label>
-              <input type="text" id="end" value="${formatTime(itemData.end)}">
-              <label for="speed">Speed (%):</label>
-              <input type="number" id="speed" value="${itemData.speed}" onchange="handleSpeedChange(this, '${trackDetails.uri}')">
-              <label for="key">Key Transpose:</label>
-              <input type="number" id="key" value="${itemData.key}">
-            </div>
+          <div class="songButton">
+          <button class="play-button" onclick="playSong('${track.uri}')">&#9654;</button>
+          <button class="stop-button" onclick="stopSong()">⬛</button>
+          <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
+          </div>
+          <div class="expanded-content">
+            <label for="start">Play from:</label>
+            <input type="text" id="start" value="0:00">
+            <label for="end">-</label>
+            <input type="text" id="end" value="${formatTime(track.duration_ms)}">
+            <label for="speed">Speed (%):</label>
+            <input type="number" id="speed" value="100" onchange="handleSpeedChange(this, '${track.uri}')">
+            <label for="key">Key Transpose:</label>
+            <input type="number" id="key" value="0">
+          </div>
           </div>
         `;
-        sortableList.appendChild(newItem);
+            sortableList.appendChild(newItem);
 
-        // Initialize drag and drop event listeners for the new item
-        initializeDragAndDropItem(newItem);
+            // Initialize drag and drop event listeners for the new item
+            initializeDragAndDropItem(newItem);
 
-        // Initialize expand/collapse event listener for the new item
-        initializeExpandCollapse(newItem);
+            // Initialize expand/collapse event listener for the new item
+            initializeExpandCollapse(newItem);
+          }
+        }
+
+        // Populate the list with data from both endpoints
+        await populateList(data);
+        await populateList(userPrefData);
+      } catch (error) {
+        console.error('Error populating list from database:', error);
+        alert('An error occurred while populating the list from the database. Please try again later.');
       }
     }
-
-    // Populate the list with data from both endpoints
-    await populateList(data);
-    await populateList(userPrefData);
-  } catch (error) {
-    console.error('Error populating list from database:', error);
-    alert('An error occurred while populating the list from the database. Please try again later.');
-  }
-}
 
 
     function initializeExpandCollapse(item) {
@@ -295,11 +313,10 @@
           <button class="stop-button" onclick="stopSong()">⬛</button>
           <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
           </div>
-          <div class="expand">&#9660;</div>
           <div class="expanded-content">
-            <label for="start">Start:</label>
+            <label for="start">Play from:</label>
             <input type="text" id="start" value="0:00">
-            <label for="end">End:</label>
+            <label for="end">-</label>
             <input type="text" id="end" value="${formatTime(track.duration_ms)}">
             <label for="speed">Speed (%):</label>
             <input type="number" id="speed" value="100" onchange="handleSpeedChange(this, '${track.uri}')">
@@ -344,17 +361,17 @@
         <button class="play-button" onclick="playFile('${file}')">&#9654;</button>
         <button class="stop-button" onclick="stopSong()">⬛</button>
         <button class="remove-button" onclick="removeFromList(this.parentNode.parentNode)">❌</button>
-        <div class="expand">&#9660;</div>
-        <div class="expanded-content">
-          <label for="start">Start:</label>
-          <input type="text" id="start" value="0:00">
-          <label for="end">End:</label>
-          <input type="text" id="end" value="5:00">
-          <label for="speed">Speed (%):</label>
-          <input type="number" id="speed" value="100" onchange="handleSpeedChange(this, '${file}')">
-          <label for="key">Key Transpose:</label>
-          <input type="number" id="key" value="0">
-        </div>
+          <div class="expanded-content">
+            <label for="start">Play from:</label>
+            <input type="text" id="start" value="0:00">
+            <label for="end">-</label>
+            <input type="text" id="end" value="${formatTime(track.duration_ms)}">
+            <label for="speed">Speed (%):</label>
+            <input type="number" id="speed" value="100" onchange="handleSpeedChange(this, '${track.uri}')">
+            <label for="key">Key Transpose:</label>
+            <input type="number" id="key" value="0">
+          </div>
+        
       </div>
     `;
 
@@ -386,15 +403,15 @@
     }
 
     function playFile(file) {
-  try {
-    const audioUrl = URL.createObjectURL(file);
-    const audio = new Audio(audioUrl);
-    audio.play();
-  } catch (error) {
-    console.error('Error playing audio:', error);
-    // alert('An error occurred while playing the audio. Please try again.');
-  }
-}
+      try {
+        const audioUrl = URL.createObjectURL(file);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (error) {
+        console.error('Error playing audio:', error);
+        // alert('An error occurred while playing the audio. Please try again.');
+      }
+    }
 
 
 
@@ -576,117 +593,117 @@
 
 
     function saveToDatabase() {
-  // First, delete all existing data
-  Promise.all([
-    fetch('/deleteOldData', {
-      method: 'DELETE'
-    }),
-    fetch('/deleteOldDataUserpref', {
-      method: 'DELETE'
-    })
-  ])
-    .then(responses => {
-      // Check if all delete operations were successful
-      for (const response of responses) {
-        if (!response.ok) {
-          throw new Error('Failed to delete old data');
+      // First, delete all existing data
+      Promise.all([
+        fetch('/deleteOldData', {
+          method: 'DELETE'
+        }),
+        fetch('/deleteOldDataUserpref', {
+          method: 'DELETE'
+        })
+      ])
+        .then(responses => {
+          // Check if all delete operations were successful
+          for (const response of responses) {
+            if (!response.ok) {
+              throw new Error('Failed to delete old data');
+            }
+          }
+          // Once old data is deleted, proceed to save new data
+          const items = document.querySelectorAll(".sortable-list .item");
+          const dataToSave = [];
+
+          items.forEach(item => {
+            const spotifyLink = item.querySelector('img').getAttribute('src');
+            const trackId = item.getAttribute('data-track-id'); // Retrieve track ID from data attribute
+            const details = item.querySelector('.expanded-content');
+
+            // Select the transpose, speed, and key input fields within the details
+            const startInput = details.querySelector('#start');
+            const endInput = details.querySelector('#end');
+            const speedInput = details.querySelector('#speed');
+            const keyInput = details.querySelector('#key');
+
+            // Parse the formatted time strings into milliseconds
+            const start = parseTimeStringToMs(startInput.value);
+            const end = parseTimeStringToMs(endInput.value);
+
+            // Get values from the input fields, or default to "0" if the fields are null
+            const speed = speedInput ? speedInput.value : 0;
+            const key = keyInput ? keyInput.value : 0;
+
+            // Push data to the array
+            dataToSave.push({
+              spotifyLink,
+              trackId, // Include track ID in the saved data
+              start,
+              end,
+              speed,
+              key
+            });
+          });
+
+          // Send new data to the server to save in the database
+          return fetch('/saveData', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSave)
+          });
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to save data');
+          }
+          alert('Data saved successfully!');
+        })
+        .catch(error => {
+          console.error('Error saving data:', error);
+          alert('An error occurred while saving data. Please try again later.');
+        });
+    }
+
+    // Function to parse formatted time string to milliseconds
+    function parseTimeStringToMs(timeString) {
+      const [minutes, seconds] = timeString.split(':').map(Number);
+      return (minutes * 60 + seconds) * 1000;
+    }
+
+    async function playAllSongs() {
+      const items = document.querySelectorAll('.sortable-list .item');
+      let currentIndex = 0;
+
+      async function playNext() {
+        if (currentIndex < items.length) {
+          const item = items[currentIndex];
+          const trackId = item.getAttribute('data-track-id');
+
+          try {
+            // Fetch track details using trackId
+            const trackDetails = await fetchTrackDetails(trackId);
+            const trackUri = trackDetails.uri;
+
+            // Play the song with default speed
+            await playSong(trackUri, 100);
+
+            // Move to the next song after this one ends
+            currentIndex++;
+            await delay(500); // Delay between songs (optional)
+            await playNext(); // Recursively play next song
+          } catch (error) {
+            console.error('Error playing song:', error);
+            alert('An error occurred while playing the songs. Please try again later.');
+          }
         }
       }
-      // Once old data is deleted, proceed to save new data
-      const items = document.querySelectorAll(".sortable-list .item");
-      const dataToSave = [];
 
-      items.forEach(item => {
-        const spotifyLink = item.querySelector('img').getAttribute('src');
-        const trackId = item.getAttribute('data-track-id'); // Retrieve track ID from data attribute
-        const details = item.querySelector('.expanded-content');
-
-        // Select the transpose, speed, and key input fields within the details
-        const startInput = details.querySelector('#start');
-        const endInput = details.querySelector('#end');
-        const speedInput = details.querySelector('#speed');
-        const keyInput = details.querySelector('#key');
-
-        // Parse the formatted time strings into milliseconds
-        const start = parseTimeStringToMs(startInput.value);
-        const end = parseTimeStringToMs(endInput.value);
-
-        // Get values from the input fields, or default to "0" if the fields are null
-        const speed = speedInput ? speedInput.value : 0;
-        const key = keyInput ? keyInput.value : 0;
-
-        // Push data to the array
-        dataToSave.push({
-          spotifyLink,
-          trackId, // Include track ID in the saved data
-          start,
-          end,
-          speed,
-          key
-        });
-      });
-
-      // Send new data to the server to save in the database
-      return fetch('/saveData', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataToSave)
-      });
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to save data');
-      }
-      alert('Data saved successfully!');
-    })
-    .catch(error => {
-      console.error('Error saving data:', error);
-      alert('An error occurred while saving data. Please try again later.');
-    });
-}
-
-// Function to parse formatted time string to milliseconds
-function parseTimeStringToMs(timeString) {
-  const [minutes, seconds] = timeString.split(':').map(Number);
-  return (minutes * 60 + seconds) * 1000;
-}
-
-async function playAllSongs() {
-  const items = document.querySelectorAll('.sortable-list .item');
-  let currentIndex = 0;
-
-  async function playNext() {
-    if (currentIndex < items.length) {
-      const item = items[currentIndex];
-      const trackId = item.getAttribute('data-track-id');
-
-      try {
-        // Fetch track details using trackId
-        const trackDetails = await fetchTrackDetails(trackId);
-        const trackUri = trackDetails.uri;
-
-        // Play the song with default speed
-        await playSong(trackUri, 100);
-
-        // Move to the next song after this one ends
-        currentIndex++;
-        await delay(500); // Delay between songs (optional)
-        await playNext(); // Recursively play next song
-      } catch (error) {
-        console.error('Error playing song:', error);
-        alert('An error occurred while playing the songs. Please try again later.');
-      }
+      // Start playing from the first song
+      await playNext();
     }
-  }
-
-  // Start playing from the first song
-  await playNext();
-}
 
 
-getTokenAndPopulateList();
+    getTokenAndPopulateList();
 
   </script>
 
