@@ -40,6 +40,12 @@ body {
   /* Adjust margin to make space for the fixed navigation bar */
 }
 
+/* .title {
+  text-align: center;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+} */
+
 .content {
   background-color: white;
   padding: 80px;
@@ -383,6 +389,10 @@ nav a {
 .songButton {
   display: flex;
   margin-left: auto;
+}
+
+.song-length {
+  text-align: left;
 }
 
 .songButton button {
