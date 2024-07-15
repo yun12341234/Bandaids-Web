@@ -32,8 +32,9 @@
     <br>
     <div class="recommendations" id="recommendationsSection">
         <h3>Recommended Songs: 
-          <button class="next-button" onclick="newRecommendation()">Next</button>
+          <button class="next-button" id="nextButton" onclick="newRecommendation()">Next</button>
         </h3>
+        <span id="songRange"></span> <!-- Added element for displaying the range -->
         <ul id="recommendations">
         </ul>
     </div>
@@ -44,7 +45,7 @@
 
   </div>
   <script>
-    let token
+    let token;
     let currentTrackId = null;
     let currentStartIndex = 0;
     const batchSize = 10; // for new 10 recommended songs
@@ -56,7 +57,7 @@
           throw new Error('Failed to fetch token');
         }
         token = await response.text();
-        return token
+        return token;
       } catch (error) {
         console.error('Error fetching token:', error);
         throw error;
@@ -82,27 +83,27 @@
     }
 
     async function fetchTrackDetails(trackId, token, retries = 3, delay = 1000) {
-    try {
-      const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      try {
+        const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch track details');
         }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch track details');
-      }
-      return await response.json();
-    } catch (error) {
-      if (retries > 0) {
-        console.warn(`Retrying fetch for track ${trackId} (${retries} retries left)...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return fetchTrackDetails(trackId, token, retries - 1, delay);
-      } else {
-        console.error('Error fetching track details:', error);
-        throw error;
+        return await response.json();
+      } catch (error) {
+        if (retries > 0) {
+          console.warn(`Retrying fetch for track ${trackId} (${retries} retries left)...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return fetchTrackDetails(trackId, token, retries - 1, delay);
+        } else {
+          console.error('Error fetching track details:', error);
+          throw error;
+        }
       }
     }
-  }
 
     async function handleSongClick(trackId) {
       console.log(`Track ID clicked: ${trackId}`);
@@ -123,22 +124,37 @@
           },
           body: JSON.stringify({ trackId: currentTrackId, start: currentStartIndex, batch_size: batchSize })
         });
-  
+
         if (!response.ok) {
           throw new Error('Failed to run server script');
         }
-  
+
         const result = await response.json();
         console.log('Server response:', result);
-  
+
         // Save recommendations to the database
         saveRecommendationsToDatabase(result.recommendations);
-  
+
+        // Update the song range
+        updateSongRange(result.recommendations.length);
+
+        // Hide the "Next" button if there are fewer than batchSize songs
+        if (result.recommendations.length < batchSize) {
+          document.getElementById('nextButton').style.display = 'none';
+        } else {
+          document.getElementById('nextButton').style.display = 'inline-block';
+        }
+
       } catch (error) {
         console.error('Error running server script:', error);
       }
     }
 
+    function updateSongRange(recommendationsCount) {
+      const start = currentStartIndex + 1;
+      const end = currentStartIndex + recommendationsCount;
+      document.getElementById('songRange').textContent = `Showing songs ${start}-${end}`;
+    }
 
     async function fetchTracklist() {
       try {
@@ -177,25 +193,25 @@
     }
 
     async function populateListFromDatabase() {
-    try {
-      const response = await fetch('/getDataRec');
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-      const data = await response.json();
-      const sortableList = document.querySelector(".sortable-list1");
-      sortableList.innerHTML = ""; // Clear existing list items
-      for (const itemData of data) {
-        console.log("Item data:", itemData); // Log item data to check if trackId is present
-        try {
-          // Fetch track details using trackId
-          const trackDetails = await fetchTrackDetails(itemData.trackId, token);
-          console.log("Track details:", trackDetails); // Log track details to ensure they are fetched correctly
-          const newItem = document.createElement('li');
-          newItem.className = "item";
-          newItem.setAttribute('data-track-id', itemData.trackId);
-          // Include trackId in the list item's HTML markup
-          newItem.innerHTML = `
+      try {
+        const response = await fetch('/getDataRec');
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const data = await response.json();
+        const sortableList = document.querySelector(".sortable-list1");
+        sortableList.innerHTML = ""; // Clear existing list items
+        for (const itemData of data) {
+          console.log("Item data:", itemData); // Log item data to check if trackId is present
+          try {
+            // Fetch track details using trackId
+            const trackDetails = await fetchTrackDetails(itemData.trackId, token);
+            console.log("Track details:", trackDetails); // Log track details to ensure they are fetched correctly
+            const newItem = document.createElement('li');
+            newItem.className = "item";
+            newItem.setAttribute('data-track-id', itemData.trackId);
+            // Include trackId in the list item's HTML markup
+            newItem.innerHTML = `
           <div class="details" data-track-id="${itemData.trackId}">
             <img src="${trackDetails.album.images[0].url}" alt="${trackDetails.name}">
           <div>
@@ -210,16 +226,16 @@
           </div>
           </div>
           `;
-          sortableList.appendChild(newItem);
-        } catch (error) {
-          console.error(`Error fetching details for track ${itemData.trackId}:`, error);
+            sortableList.appendChild(newItem);
+          } catch (error) {
+            console.error(`Error fetching details for track ${itemData.trackId}:`, error);
+          }
         }
+      } catch (error) {
+        console.error('Error populating list from database:', error);
+        alert('An error occurred while populating the list from the database. Please try again later.');
       }
-    } catch (error) {
-      console.error('Error populating list from database:', error);
-      alert('An error occurred while populating the list from the database. Please try again later.');
     }
-  }
 
 
     function getAudioDuration(file) {
@@ -294,7 +310,7 @@
 
           console.log('Playing preview for track:', trackData.name);
         } else {
-          console.log(speed)
+          console.log(speed);
           // If the speed value is not valid, play the song with the default speed (1)
           currentAudio = new Audio(previewUrl);
           currentAudio.play();
@@ -322,79 +338,79 @@
     }
 
     // SAVE RECOMMENDED SONGS TO DATABASE
-function saveRecommendationsToDatabase(recommendations) {
-  // First, delete all existing data
-  fetch('/deleteOldDataRec', {
-    method: 'DELETE'
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to delete old data');
-    }
-    // Once old data is deleted, proceed to save new data
-    const dataToSave = recommendations.map(recommendation => ({
-      spotifyLink: recommendation.imageUrl,  // Assuming recommendation object has imageUrl field
-      trackId: recommendation.id,
-      start: 0,  // Default value for start time
-      end: 0,    // Default value for end time
-      speed: 100, // Default value for speed (100 means normal speed)
-      key: 0     // Default value for key
-    }));
+    function saveRecommendationsToDatabase(recommendations) {
+      // First, delete all existing data
+      fetch('/deleteOldDataRec', {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to delete old data');
+        }
+        // Once old data is deleted, proceed to save new data
+        const dataToSave = recommendations.map(recommendation => ({
+          spotifyLink: recommendation.imageUrl,  // Assuming recommendation object has imageUrl field
+          trackId: recommendation.id,
+          start: 0,  // Default value for start time
+          end: 0,    // Default value for end time
+          speed: 100, // Default value for speed (100 means normal speed)
+          key: 0     // Default value for key
+        }));
 
-    // Send new data to the server to save in the database
-    return fetch('/saveDataRec', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dataToSave)
-    });
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Failed to save recommendations');
-    }
-    // alert('Recommendations saved successfully!');
-    getTokenAndPopulateList(); // Show recommended songs right away after saved to database
-  })
-  .catch(error => {
-    console.error('Error saving recommendations:', error);
-    alert('An error occurred while saving recommendations. Please try again later.');
-  });
-}
-
-async function saveToTracklistDB(uri, name, artist, imageUrl, trackId) {
-  const dataToSave = [
-    {
-      spotifyLink: imageUrl,
-      trackId: trackId,
-      start: 0,  // Default value for start time
-      end: 0,    // Default value for end time
-      speed: 100, // Default value for speed (100 means normal speed)
-      key: 0     // Default value for key
-    }
-  ];
-
-  try {
-    console.log('Saving track to database:', dataToSave); // Log data being saved
-    const response = await fetch('/saveData', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dataToSave)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to save track');
+        // Send new data to the server to save in the database
+        return fetch('/saveDataRec', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dataToSave)
+        });
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to save recommendations');
+        }
+        // alert('Recommendations saved successfully!');
+        getTokenAndPopulateList(); // Show recommended songs right away after saved to database
+      })
+      .catch(error => {
+        console.error('Error saving recommendations:', error);
+        alert('An error occurred while saving recommendations. Please try again later.');
+      });
     }
 
-    alert('Song added to tracklist!');
-  } catch (error) {
-    console.error('Error saving track:', error);
-    alert('An error occurred while saving the track. Please try again later.');
-  }
-}
+    async function saveToTracklistDB(uri, name, artist, imageUrl, trackId) {
+      const dataToSave = [
+        {
+          spotifyLink: imageUrl,
+          trackId: trackId,
+          start: 0,  // Default value for start time
+          end: 0,    // Default value for end time
+          speed: 100, // Default value for speed (100 means normal speed)
+          key: 0     // Default value for key
+        }
+      ];
+
+      try {
+        console.log('Saving track to database:', dataToSave); // Log data being saved
+        const response = await fetch('/saveData', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dataToSave)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save track');
+        }
+
+        alert('Song added to tracklist!');
+      } catch (error) {
+        console.error('Error saving track:', error);
+        alert('An error occurred while saving the track. Please try again later.');
+      }
+    }
 
     // Function to parse formatted time string to milliseconds
     function parseTimeStringToMs(timeString) {
